@@ -1,0 +1,10 @@
+st.markdown("#### Navigasi")
+    # note: st.page_link menautkan langsung ke file multipage Anda di folder 'pages'
+    st.page_link("home.py", label="Home", icon="🏠")                                  #note: tautan ke halaman ini
+    st.page_link("pages/1_upload_dataset.py", label="Upload Dataset", icon="📤")      #note: ke 1_upload_dataset.py
+    st.page_link("pages/2_preprocesing.py", label="Preprocessing", icon="🧹")         #note: ke 2_preprocesing.py
+    st.page_link("pages/3_pelabelan.py", label="Pelabelan Emosi", icon="🏷️")         #note: ke 3_pelabelan.py
+    st.page_link("pages/4_training_model.py", label="Training Model", icon="🧠")      #note: ke 4_training_model.py
+    st.page_link("pages/5_visualisasi.py", label="Visualisasi", icon="📊")            #note: ke 5_visualisasi.py
+    st.page_link("pages/6_wordcloud.py", label="Wordcloud", icon="☁️")               #note: ke 6_wordcloud.py
+    st.divider()
