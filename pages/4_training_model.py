@@ -1,18 +1,18 @@
 # pages/4_training_model.py
 # =============================================================================
-# HALAMAN TRAINING MODEL SVM (SIMPLE)
+# HALAMAN TRAINING MODEL SVM (SIMPLE) + RINGKASAN LABEL BEFORE/AFTER UNDERSAMPLING
 # =============================================================================
 
 import streamlit as st
 import pandas as pd
 import io
 import joblib
+
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-
 from components.sidebar import render as render_sidebar
-from modules.modeling import prepare_data, train_svm_simple
+from modules.modeling import prepare_data, train_svm_simple, undersample_dataframe
 
 st.set_page_config(
     page_title="Training Model SVM - Analisis Emosi",
@@ -35,6 +35,34 @@ Halaman ini melatih model **SVM** menggunakan data dari tahap sebelumnya.
 
 st.divider()
 
+# =============================================================================
+# FUNGSI RINGKASAN LABEL (TABEL + CHART WARNA)
+# =============================================================================
+def render_label_summary(df: pd.DataFrame, label_col: str, title: str):
+    st.subheader(title)
+
+    dist = df[label_col].value_counts()
+    dist_df = dist.rename_axis("Label").reset_index(name="Jumlah")
+
+    c1, c2 = st.columns([1, 2])
+
+    with c1:
+        st.dataframe(dist_df, use_container_width=True, height=220)
+
+    with c2:
+        fig, ax = plt.subplots(figsize=(8, 4))
+        sns.barplot(
+            x=dist.index,
+            y=dist.values,
+            palette="viridis",
+            ax=ax
+        )
+        ax.set_title("Distribution of Emotion Labels")
+        ax.set_xlabel("Emotion Label")
+        ax.set_ylabel("Number of Comments")
+        st.pyplot(fig)
+
+
 # -------------------------------------------------
 # CEK DATA LABELLED
 # -------------------------------------------------
@@ -55,17 +83,9 @@ for col in ["text_preprocessed", "label_emosi"]:
         st.stop()
 
 # -------------------------------------------------
-# RINGKASAN LABEL
+# RINGKASAN LABEL (SEBELUM UNDERSAMPLING)
 # -------------------------------------------------
-st.subheader("📌 Ringkasan Label")
-dist = df_lab["label_emosi"].value_counts().sort_index()
-dist_df = dist.rename_axis("Label").reset_index(name="Jumlah")
-
-c1, c2 = st.columns([1, 2])
-with c1:
-    st.dataframe(dist_df, use_container_width=True, height=220)
-with c2:
-    st.bar_chart(dist_df.set_index("Label")["Jumlah"])
+render_label_summary(df_lab, "label_emosi", "📌 Ringkasan Label (Sebelum Undersampling)")
 
 st.divider()
 
@@ -100,52 +120,36 @@ use_undersampling = st.checkbox(
     value=True,
     help="Disarankan jika distribusi label tidak seimbang"
 )
+
+# default
 df_train = df_lab.copy()
 
+# -------------------------------------------------
+# APPLY UNDERSAMPLING
+# -------------------------------------------------
 if use_undersampling:
-    from modules.modeling import undersample_dataframe
     df_train = undersample_dataframe(
         df_train,
         label_col="label_emosi",
         random_state=int(random_state),
     )
     st.info("📉 Undersampling diterapkan untuk menyeimbangkan distribusi kelas.")
-    
+
 # -------------------------------------------------
-# DISTRIBUSI LABEL SETELAH UNDERSAMPLING (CHART WARNA)
+# RINGKASAN LABEL (SETELAH UNDERSAMPLING)
 # -------------------------------------------------
-st.subheader("📌 Distribusi Label Setelah Undersampling")
+render_label_summary(df_train, "label_emosi", "📌 Ringkasan Label (Setelah Undersampling)")
 
-dist_after = df_train["label_emosi"].value_counts()
-dist_after_df = dist_after.rename_axis("Label").reset_index(name="Jumlah")
+st.divider()
 
-c1, c2 = st.columns([1, 2])
-
-with c1:
-    st.dataframe(dist_after_df, use_container_width=True, height=220)
-
-with c2:
-    # Plot seperti Colab (seaborn countplot)
-    fig, ax = plt.subplots(figsize=(8, 4))
-    sns.barplot(
-        x=dist_after.index,
-        y=dist_after.values,
-        palette="viridis",
-        ax=ax
-    )
-    ax.set_title("Distribution of Emotion Labels (After Undersampling)")
-    ax.set_xlabel("Emotion Label")
-    ax.set_ylabel("Number of Comments")
-    st.pyplot(fig)
-
-
+# -------------------------------------------------
+# PREPARE TEXTS & LABELS
+# -------------------------------------------------
 texts, labels = prepare_data(
     df_train,
     text_col="text_preprocessed",
     label_col="label_emosi",
 )
-
-st.divider()
 
 # -------------------------------------------------
 # TRAIN BUTTON
@@ -245,10 +249,9 @@ if st.button("🚀 Mulai Training SVM", type="primary", use_container_width=True
 st.divider()
 
 # -------------------------------------------------
-# LANJUT KE VISUALISASI (sesuaikan nama file kamu)
+# LANJUT KE VISUALISASI
 # -------------------------------------------------
 if "svm_result" in st.session_state and st.session_state.svm_result is not None:
     st.info("✅ Model sudah dilatih. Kamu bisa lanjut ke tahap **Visualisasi**.")
-    # ganti nama file di bawah ini sesuai file visualisasi kamu
     if st.button("➡️ Lanjut ke Visualisasi", type="primary", use_container_width=True):
         st.switch_page("pages/5_visualisasi.py")
