@@ -6,6 +6,7 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import seaborn as sns
 
 import matplotlib.pyplot as plt
 
@@ -98,23 +99,27 @@ with tab1:
 
     with c2:
         st.markdown("**Heatmap Confusion Matrix**")
-        fig, ax = plt.subplots(figsize=(6, 5))
-        im = ax.imshow(cm, aspect="auto")
 
-        ax.set_xticks(range(len(labels)))
-        ax.set_yticks(range(len(labels)))
-        ax.set_xticklabels(labels, rotation=45, ha="right")
-        ax.set_yticklabels(labels)
+        fig, ax = plt.subplots(figsize=(8, 6))
 
-        # angka di dalam sel
-        for i in range(len(labels)):
-            for j in range(len(labels)):
-                ax.text(j, i, int(cm[i, j]), ha="center", va="center")
+        sns.heatmap(
+            cm,
+            annot=True,
+            fmt="d",
+            cmap="Blues",
+            xticklabels=labels,
+            yticklabels=labels,
+            ax=ax
+        )
 
-        ax.set_xlabel("Predicted")
-        ax.set_ylabel("True")
-        ax.set_title("Confusion Matrix")
+        # ambil kernel jika ada di metrics
+        kernel_name = m.get("kernel", "SVM")
+        ax.set_title(f"Confusion Matrix ({kernel_name})", fontsize=14)
+        ax.set_xlabel("Predicted Label")
+        ax.set_ylabel("True Label")
+
         st.pyplot(fig)
+
 
     st.divider()
 
