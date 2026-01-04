@@ -534,7 +534,7 @@ if 'raw_df' not in st.session_state or st.session_state.raw_df is None:
     """)
     
     if st.button("📤 Ke Halaman Upload Dataset", type="primary"):
-        st.switch_page("pages/1_Upload_Dataset.py")
+        st.switch_page("pages/1_upload_dataset.py")
     
     st.stop()
 
