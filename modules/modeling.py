@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 
 from sklearn.model_selection import train_test_split
+from sklearn.multiclass import OneVsRestClassifier
 from sklearn.preprocessing import LabelEncoder
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.svm import SVC
@@ -75,6 +76,7 @@ def train_svm_simple(
     use_balanced_weight: bool = True,
     tfidf_params: Optional[Dict[str, Any]] = None,
     svm_params: Optional[Dict[str, Any]] = None,
+    multiclass_strategy: str = "ovo",
 ) -> TrainResult:
     # --- merge params ---
     tfidf_cfg = dict(DEFAULT_TFIDF_PARAMS)
@@ -106,13 +108,19 @@ def train_svm_simple(
     X_test = vectorizer.transform(X_test_text)
 
     # --- SVM ---
-    model = SVC(
+    base_svc = SVC(
         kernel=kernel,
         C=svm_cfg["C"],
         gamma=svm_cfg["gamma"],
         degree=svm_cfg["degree"],
         class_weight=class_weight,
     )
+
+    if multiclass_strategy == "ovr":
+        model = OneVsRestClassifier(base_svc)
+    else:
+        model = base_svc
+
     model.fit(X_train, y_train)
     y_pred = model.predict(X_test)
 
@@ -140,6 +148,7 @@ def train_svm_simple(
         "confusion_matrix": cm,
         "labels": le.classes_.tolist(),
         "classification_report": report,
+        "multiclass_strategy" : multiclass_strategy,
     }
 
     return TrainResult(

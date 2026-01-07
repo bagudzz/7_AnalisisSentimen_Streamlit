@@ -113,7 +113,14 @@ with col_right:
     )
     with st.expander("🔧 Default yang dipakai (otomatis)", expanded=False):
         st.write("**TF-IDF**: max_features=20000, ngram=(1,2), min_df=2, max_df=0.95")
-        st.write("**SVM**: C=1.0, gamma='scale', degree=3")
+        st.write("**SVM**: C=1.0, gamma='scale', degree=3"
+    )   
+    strategy = st.selectbox(
+    "Strategi Multiclass",
+    options=["OvO (default)", "OvR (One-vs-Rest)"],
+    index=1
+    )
+
 
 use_undersampling = st.checkbox(
     "Gunakan undersampling untuk menyeimbangkan kelas",
@@ -179,6 +186,7 @@ if st.button("🚀 Mulai Training SVM", type="primary", use_container_width=True
             test_size=float(test_size),
             random_state=int(random_state),
             use_balanced_weight=bool(use_balanced),
+            multiclass_strategy="ovr" if strategy == "OvR (One-vs-Rest)" else "ovo"
         )
     except Exception as e:
         st.error(f"Terjadi error saat training: {e}")
